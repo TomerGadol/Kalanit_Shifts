@@ -57,7 +57,15 @@ night_count=int(selected[0])
 # Last shift file path
 last_shift_file = 'last_shift.pkl'
 # Check if the file exists
+load_file=False
 if os.path.exists(last_shift_file):
+    # Selector for loading shift history or starting from scratch
+    title=("לטעון היסטוריית שמירות או להתחיל מהתחלה?")
+    options=["לטעון היסטוריה","להתחיל מהתחלה"]
+    selected= pick(options,title)
+    print(selected[0])
+    if selected[0]=="לטעון היסטוריה": load_file=True
+if os.path.exists(last_shift_file) and load_file:
     # Load last_shift from the file
     with open(last_shift_file, 'rb') as f:
         last_shift = pickle.load(f)
@@ -126,6 +134,16 @@ return_guards=[x[0] for x in selected]
 print("חוזרים: ",return_guards)
 for guard in selected: returning_guards.append(guard[0])
 
+# Selector for returning guards shift time
+title=("האם חוזרים שומרים 14-18?")
+options=["כן","לא"]
+selected=pick(options,title)
+print("חוזרים ",selected[0], " שומרים 14-18")
+if selected[0]=="כן":
+    return_break=False
+elif selected[0]=="לא":
+    return_break=True
+
 # Assign guards to shifts
 for i, shift in enumerate(shifts):
     # Sort available guards by the number of shifts since their last shift
@@ -139,7 +157,7 @@ for i, shift in enumerate(shifts):
                     # Check if guard has had at least 2 shifts of rest
                     if last_shift[guard] >= 2:
                         # Make sure returning guards are not assigned to the 14-18 shift
-                        if shift["start"] == 14 and guard in returning_guards:
+                        if shift["start"] == 14 and guard in returning_guards and return_break==True:
                             continue
                         # Assign guard to shift and update last shift
                         last_shift[guard] = 0
@@ -198,11 +216,36 @@ for shift in shifts:
 
 # Print shift roster
 days_of_the_week = {"Sunday":"ראשון", "Monday":"שני", "Tuesday":"שלישי", "Wednesday":"רביעי", "Thursday":"חמישי", "Friday":"שישי", "Saturday":"שבת"}
+print("\n")
 print(days_of_the_week[datetime.date.today().strftime("%A")],"-",days_of_the_week[(datetime.date.today() + datetime.timedelta(days=1)).strftime("%A")])
-print(datetime.date.today().strftime("%A"),"-",(datetime.date.today() + datetime.timedelta(days=1)).strftime("%A"))
+#print(datetime.date.today().strftime("%A"),"-",(datetime.date.today() + datetime.timedelta(days=1)).strftime("%A")) #English DotW
 print(datetime.date.today().strftime("%d/%m"),"-",(datetime.date.today() + datetime.timedelta(days=1)).strftime("%d/%m"))
 for time, guards in shifts_dict.items():
     print(f"{time}: {', '.join(guards)}")
+
+# # Ask user to swap WIP
+# swap=input("האם תרצה להחליף ראש בראש? ")
+# if swap=="כן":
+#     # Selector for swapping shifts
+#     title=("בחר שני שומרים להחליף ראש בראש")
+#     options=available_guards
+#     selected=pick(options,title,multiselect=True, min_selection_count=2)
+#     if len(selected) != 2:
+#         print("שגיאה: יש לבחור שני שומרים להחליף ראש בראש.")
+#     else:
+#         swap_guards=[x[0] for x in selected]
+#         a = swap_guards[0]
+#         b= swap_guards[1]
+#         temp_var=shifts_dict[shifts[b][0]]
+#         shifts_dict[shifts[b][0]] = shifts_dict[shifts[a][0]]
+#         shifts_dict[shifts[a][0]] = temp_var
+#         temp_var=last_shift[shifts[b][1]]
+#         last_shift[shifts[b][1]] = last_shift[shifts[a][1]]
+#         last_shift[shifts[a][1]] = temp_var
+    
+else:
+    # Wait for user input to exit
+    input("לחץ על אנטר כדי לצאת מהתוכנה...")
 
 # Pop last element for last_shift if empty
 if list(last_shift.keys())[-1]=='':
@@ -210,6 +253,3 @@ if list(last_shift.keys())[-1]=='':
 # At the end of the program, write last_shift to the file
 with open(last_shift_file, 'wb') as f:
     pickle.dump(last_shift, f)
-
-# Wait for user input to exit
-    input("לחץ על אנטר כדי לצאת מהתוכנה...")
