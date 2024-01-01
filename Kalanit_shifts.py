@@ -32,7 +32,7 @@ title=("(מי בחוץ? (לבחור באמצעות רווח, להתקדם עם �
 options=all_guards
 selected= pick(options,title,multiselect=True, min_selection_count=0)
 out_guards=[x[0] for x in selected]
-print("מחוץ לסבב: ",out_guards)
+print(out_guards, "מחוץ לסבב: ")
 # Remove unavailable guards from available list
 available_guards = [guard for guard in all_guards if not any(guard in tup for tup in selected)]
 
@@ -77,7 +77,7 @@ else:
     previous_18_22_guards = []
     title=("מי שמר 18-22?")
     options=all_guards    # Update last_shift for these guards
-    selected=pick(options,title,multiselect=True, min_selection_count=day_count)
+    selected=pick(options,title,multiselect=True, min_selection_count=0)
     for guard in selected: previous_18_22_guards.append(guard[0])
     for guard in previous_18_22_guards:
         last_shift[guard] = 5
@@ -86,7 +86,7 @@ else:
     previous_22_2_guards = []
     title=("מי שמר 22-02?")
     options=all_guards    # Update last_shift for these guards
-    selected=pick(options,title,multiselect=True, min_selection_count=night_count)
+    selected=pick(options,title,multiselect=True, min_selection_count=0)
     for guard in selected: previous_22_2_guards.append(guard[0])
     for guard in previous_22_2_guards:
         last_shift[guard] = 4
@@ -95,7 +95,7 @@ else:
     previous_2_6_guards = []
     title=("מי שמר 02-06?")
     options=all_guards    # Update last_shift for these guards
-    selected=pick(options,title,multiselect=True, min_selection_count=night_count)
+    selected=pick(options,title,multiselect=True, min_selection_count=0)
     for guard in selected: previous_2_6_guards.append(guard[0])
     for guard in previous_2_6_guards:
         last_shift[guard] = 3
@@ -104,7 +104,7 @@ else:
     previous_6_10_guards = []
     title=("מי שמר 06-10?")
     options=all_guards    # Update last_shift for these guards
-    selected=pick(options,title,multiselect=True, min_selection_count=day_count)
+    selected=pick(options,title,multiselect=True, min_selection_count=0)
     for guard in selected: previous_6_10_guards.append(guard[0])
     for guard in previous_6_10_guards:
         last_shift[guard] = 2
@@ -113,7 +113,7 @@ else:
     previous_10_14_guards = []
     title=("מי שמר 10_14?")
     options=all_guards    # Update last_shift for these guards
-    selected=pick(options,title,multiselect=True, min_selection_count=day_count)
+    selected=pick(options,title,multiselect=True, min_selection_count=0)
     for guard in selected: previous_10_14_guards.append(guard[0])
     for guard in previous_10_14_guards:
         last_shift[guard] = 1
@@ -131,14 +131,14 @@ title=("מי חוזר?")
 options=available_guards
 selected=pick(options,title,multiselect=True, min_selection_count=0)
 return_guards=[x[0] for x in selected]
-print("חוזרים: ",return_guards)
+print(return_guards, "חוזרים: ")
 for guard in selected: returning_guards.append(guard[0])
 
 # Selector for returning guards shift time
 title=("האם חוזרים שומרים 14-18?")
 options=["כן","לא"]
 selected=pick(options,title)
-print("חוזרים ",selected[0], " שומרים 14-18")
+print("14-18 ","חוזרים ",selected[0], " שומרים")
 if selected[0]=="כן":
     return_break=False
 elif selected[0]=="לא":
@@ -173,9 +173,11 @@ for i, shift in enumerate(shifts):
                     assigned_guards += 1
                     if assigned_guards == day_count:
                         break
-        if assigned_guards < day_count:
-            print(f"שגיאה: אין מספיק שומרים עבור משמרת {shift['name']}")
-            break
+            # If still not enough guards, print error and add placeholder
+            if assigned_guards < day_count:
+                print(f"שגיאה: אין מספיק שומרים עבור משמרת {shift['name']}")
+                day_shifts.append((shift["name"], "חסר שומר"))
+                assigned_guards += 1
     else:
         # Night shift
         for _ in range(night_count):
@@ -187,13 +189,16 @@ for i, shift in enumerate(shifts):
                         last_shift[guard] = 0
                         night_shifts.append((shift["name"], guard))
                         assigned_guards += 1
-                        break
+                        if assigned_guards == night_count:
+                            break
+        # If not enough guards are assigned, print error and add placeholder
         if assigned_guards < night_count:
             print(f"שגיאה: אין מספיק שומרים עבור משמרת {shift['name']}")
-            break
+            night_shifts.append((shift["name"], "חסר שומר"))
+            assigned_guards += 1
     # After each shift, increment last_shift[guard] for each guard not assigned to the shift
     for guard in all_guards:
-        if guard not in day_shifts or night_shifts:
+        if not any(guard in shift for shift in day_shifts + night_shifts):
             last_shift[guard] += 1
 # Combine day_shifts and night_shifts into one list
 shifts = day_shifts + night_shifts
@@ -241,11 +246,12 @@ for time, guards in shifts_dict.items():
 #         shifts_dict[shifts[a][0]] = temp_var
 #         temp_var=last_shift[shifts[b][1]]
 #         last_shift[shifts[b][1]] = last_shift[shifts[a][1]]
-#         last_shift[shifts[a][1]] = temp_var
-    
-else:
-    # Wait for user input to exit
-    input("לחץ על אנטר כדי לצאת מהתוכנה...")
+#         last_shift[shifts[a][1]] = temp_var  
+# else:
+#     # Wait for user input to exit
+#     input("לחץ על אנטר כדי לצאת מהתוכנה...")
+
+input("לחץ על אנטר כדי לצאת מהתוכנה...")
 
 # Pop last element for last_shift if empty
 if list(last_shift.keys())[-1]=='':
