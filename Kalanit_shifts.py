@@ -26,13 +26,28 @@ except FileNotFoundError:
             reader = csv.reader(csvfile)
             for row in reader:
                 all_guards.append(row[0])  # assuming guard name is in the first column
+#TODO update all selectors to run from function
+# Define single selector function
+    def single_selector(title, options):
+        title=title
+        options=options
+        selected=pick(options, title)
+        chosen=selected[0]
+        return(chosen)
+# Define multi selector function
+    def multi_selector(title, options, min_selection_count):
+        title=title
+        options=options
+        selected=pick(options, title, multiselect=True, min_selection_count=min_selection_count)
+        chosen=[x[0] for x in selected]
+        return(chosen)
 
 # Selector for unavailable guards
 title=("(מי בחוץ? (לבחור באמצעות רווח, להתקדם עם אנטר")
 options=all_guards
 selected= pick(options,title,multiselect=True, min_selection_count=0)
 out_guards=[x[0] for x in selected]
-print(out_guards, "מחוץ לסבב: ")
+print(out_guards, ":מחוץ לסבב ")
 # Remove unavailable guards from available list
 available_guards = [guard for guard in all_guards if not any(guard in tup for tup in selected)]
 
@@ -44,14 +59,14 @@ night_shifts = []
 title=("כמה שומרים ביום?")
 options=["1","2","3","4"]
 selected= pick(options,title)
-print(selected[0], " שומרים ביום")
+print(selected[0]," :שומרים ביום")
 day_count=int(selected[0])
 
 # Selector for number of guards during the night
 title=("כמה שומרים בלילה?")
 options=["1","2","3","4"]
 selected= pick(options,title)
-print(selected[0], " שומרים בלילה")
+print(selected[0]," :שומרים בלילה")
 night_count=int(selected[0])
 
 # Last shift file path
@@ -60,7 +75,7 @@ last_shift_file = 'last_shift.pkl'
 load_file=False
 if os.path.exists(last_shift_file):
     # Selector for loading shift history or starting from scratch
-    title=("לטעון היסטוריית שמירות או להתחיל מהתחלה?")
+    title=("?לטעון היסטוריית שמירות או להתחיל מהתחלה")
     options=["לטעון היסטוריה","להתחיל מהתחלה"]
     selected= pick(options,title)
     print(selected[0])
@@ -75,7 +90,7 @@ else:
     
     # Ask the user for input about the guards from the previous day's 18-22 shift
     previous_18_22_guards = []
-    title=("מי שמר 18-22?")
+    title=("?מי שמר 18-22")
     options=all_guards    # Update last_shift for these guards
     selected=pick(options,title,multiselect=True, min_selection_count=0)
     for guard in selected: previous_18_22_guards.append(guard[0])
@@ -84,7 +99,7 @@ else:
     
     # Ask the user for input about the guards from the previous day's 22-2 shift
     previous_22_2_guards = []
-    title=("מי שמר 22-02?")
+    title=("?מי שמר 22-02")
     options=all_guards    # Update last_shift for these guards
     selected=pick(options,title,multiselect=True, min_selection_count=0)
     for guard in selected: previous_22_2_guards.append(guard[0])
@@ -93,7 +108,7 @@ else:
     
     # Ask the user for input about the guards from the previous day's 2-6 shift
     previous_2_6_guards = []
-    title=("מי שמר 02-06?")
+    title=("?מי שמר 02-06")
     options=all_guards    # Update last_shift for these guards
     selected=pick(options,title,multiselect=True, min_selection_count=0)
     for guard in selected: previous_2_6_guards.append(guard[0])
@@ -102,7 +117,7 @@ else:
     
     # Ask the user for input about the guards from the previous day's 6-10 shift
     previous_6_10_guards = []
-    title=("מי שמר 06-10?")
+    title=("?מי שמר 06-10")
     options=all_guards    # Update last_shift for these guards
     selected=pick(options,title,multiselect=True, min_selection_count=0)
     for guard in selected: previous_6_10_guards.append(guard[0])
@@ -111,7 +126,7 @@ else:
 
     # Ask the user for input about the guards from the previous day's 10-14 shift
     previous_10_14_guards = []
-    title=("מי שמר 10_14?")
+    title=("?מי שמר 10_14")
     options=all_guards    # Update last_shift for these guards
     selected=pick(options,title,multiselect=True, min_selection_count=0)
     for guard in selected: previous_10_14_guards.append(guard[0])
@@ -127,11 +142,11 @@ for guard in all_guards:
 # Ask the user for input about the returning guards
 returning_guards = []
 # Selector for returning guards
-title=("מי חוזר?")
+title=("?מי חוזר")
 options=available_guards
 selected=pick(options,title,multiselect=True, min_selection_count=0)
 return_guards=[x[0] for x in selected]
-print(return_guards, "חוזרים: ")
+print(return_guards, ":חוזרים ")
 for guard in selected: returning_guards.append(guard[0])
 
 # Selector for returning guards shift time
@@ -150,7 +165,7 @@ for i, shift in enumerate(shifts):
     available_guards.sort(key=lambda guard: (i - last_shift[guard] if last_shift[guard] is not None else float('inf')))
     assigned_guards = 0
     # Initialize not_assigned_guards with all available guards
-    not_assigned_guards = available_guards.copy()
+    not_assigned_guards = all_guards.copy()
     if shift["start"] != 22 and shift["start"] != 2:
         # Day shift
         for _ in range(day_count):
@@ -209,7 +224,7 @@ for i, shift in enumerate(shifts):
             night_shifts.append((shift["name"], "חסר שומר"))
             assigned_guards += 1
 
-# Combine day_shifts and night_shifts into one list
+# Combine day_shifts and night_shifts into one list of tuples
 shifts = day_shifts + night_shifts
 
 # Define sorting key function
@@ -220,47 +235,59 @@ def sorting_key(shift):
 # Sort shifts by start time in a circular manner
 shifts.sort(key=sorting_key)
 
-# Group shifts by time
-shifts_dict = {}
-for shift in shifts:
-    if shift[0] not in shifts_dict:
-        shifts_dict[shift[0]] = list(shift[1:])
+# Define group shifts by time function
+def by_time():
+    shifts_dict = {}
+    for shift in shifts:
+        if shift[0] not in shifts_dict:
+            shifts_dict[shift[0]] = list(shift[1:])
+        else:
+            shifts_dict[shift[0]].extend(shift[1:])
+    return(shifts_dict)
+shifts_dict=by_time()
+
+# Define shift roster print function
+def roster_print():
+    days_of_the_week = {"Sunday":"ראשון", "Monday":"שני", "Tuesday":"שלישי", "Wednesday":"רביעי", "Thursday":"חמישי", "Friday":"שישי", "Saturday":"שבת"}
+    print("\n")
+    print(days_of_the_week[datetime.date.today().strftime("%A")],"-",days_of_the_week[(datetime.date.today() + datetime.timedelta(days=1)).strftime("%A")])
+    print(datetime.date.today().strftime("%d/%m"),"-",(datetime.date.today() + datetime.timedelta(days=1)).strftime("%d/%m"))
+    for time, guards in shifts_dict.items():
+        print(f"{time}: {', '.join(guards)}")
+    print("\n")
+
+# First roster print
+roster_print()
+
+# Ask user to swap, currently swaps ALL shifts. TODO: update to swap individual shifts
+swapping=True
+while swapping:
+    swap=input("לבצע חילוף ראש בראש? כן\לא \n")
+    if swap=="כן":
+        # Selector for swapping shifts
+        title=("בחר שני שומרים להחליף ראש בראש")
+        options=available_guards
+        selected=pick(options,title,multiselect=True, min_selection_count=2)
+        swap_guards=[x[0] for x in selected]
+        if len(swap_guards) != 2:
+            print("שגיאה: יש לבחור שני שומרים להחליף ראש בראש.")
+        else:
+            # Swap shifts between swap_guards
+            a = swap_guards[0]
+            b= swap_guards[1]
+            last_shift[a], last_shift[b] = last_shift[b], last_shift[a]
+            for i,shift in enumerate(shifts_dict):
+                for h,guard in enumerate(shifts_dict[shift]):
+                    if guard==a:
+                        shifts_dict[shift][h]=b
+                        continue
+                    elif guard==b:
+                        shifts_dict[shift][h]=a
+            roster_print()
     else:
-        shifts_dict[shift[0]].extend(shift[1:])
-
-# Print shift roster
-days_of_the_week = {"Sunday":"ראשון", "Monday":"שני", "Tuesday":"שלישי", "Wednesday":"רביעי", "Thursday":"חמישי", "Friday":"שישי", "Saturday":"שבת"}
-print("\n")
-print(days_of_the_week[datetime.date.today().strftime("%A")],"-",days_of_the_week[(datetime.date.today() + datetime.timedelta(days=1)).strftime("%A")])
-#print(datetime.date.today().strftime("%A"),"-",(datetime.date.today() + datetime.timedelta(days=1)).strftime("%A")) #English DotW
-print(datetime.date.today().strftime("%d/%m"),"-",(datetime.date.today() + datetime.timedelta(days=1)).strftime("%d/%m"))
-for time, guards in shifts_dict.items():
-    print(f"{time}: {', '.join(guards)}")
-
-# # Ask user to swap WIP
-# swap=input("האם תרצה להחליף ראש בראש? ")
-# if swap=="כן":
-#     # Selector for swapping shifts
-#     title=("בחר שני שומרים להחליף ראש בראש")
-#     options=available_guards
-#     selected=pick(options,title,multiselect=True, min_selection_count=2)
-#     swap_guards=[x[0] for x in selected]
-#     if len(swap_guards) != 2:
-#         print("שגיאה: יש לבחור שני שומרים להחליף ראש בראש.")
-#     else:
-#         a = swap_guards[0]
-#         b= swap_guards[1]
-#         temp_var=shifts_dict[shifts[b][0]]
-#         shifts_dict[shifts[b][0]] = shifts_dict[shifts[a][0]]
-#         shifts_dict[shifts[a][0]] = temp_var
-#         temp_var=last_shift[shifts[b][1]]
-#         last_shift[shifts[b][1]] = last_shift[shifts[a][1]]
-#         last_shift[shifts[a][1]] = temp_var  
-# else:
-#     # Wait for user input to exit
-#     input("לחץ על אנטר כדי לצאת מהתוכנה...")
-
-input("לחץ על אנטר כדי לצאת מהתוכנה...")
+        swapping=False
+        # Wait for user input to exit
+        input("...לחץ על אנטר כדי לצאת מהתוכנה")
 
 # Pop last element for last_shift if empty
 if list(last_shift.keys())[-1]=='':

@@ -2,7 +2,7 @@
     "CacheEntries": 1,
     "CacheHits": 6,
     "CacheMisses": 1,
-    "CacheSize": 140584,
+    "CacheSize": 159597,
     "CallsForExternalDebugInfo": 0,
     "CallsForLinking": 0,
     "CallsForPreprocessing": 0,
