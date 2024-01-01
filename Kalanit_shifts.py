@@ -149,6 +149,8 @@ for i, shift in enumerate(shifts):
     # Sort available guards by the number of shifts since their last shift
     available_guards.sort(key=lambda guard: (i - last_shift[guard] if last_shift[guard] is not None else float('inf')))
     assigned_guards = 0
+    # Initialize not_assigned_guards with all available guards
+    not_assigned_guards = available_guards.copy()
     if shift["start"] != 22 and shift["start"] != 2:
         # Day shift
         for _ in range(day_count):
@@ -163,7 +165,13 @@ for i, shift in enumerate(shifts):
                         last_shift[guard] = 0
                         day_shifts.append((shift["name"], guard))
                         assigned_guards += 1
+                        # Remove guard from not_assigned_guards
+                        not_assigned_guards.remove(guard)
                         break
+        # Increment last shift for guards not assigned to the current shift
+        for guard in not_assigned_guards:
+            last_shift[guard] += 1
+        
         # If not enough guards are assigned, assign returning guards
         if assigned_guards < day_count:
             for guard in returning_guards:
@@ -174,8 +182,8 @@ for i, shift in enumerate(shifts):
                     if assigned_guards == day_count:
                         break
             # If still not enough guards, print error and add placeholder
-            if assigned_guards < day_count:
-                print(f"שגיאה: אין מספיק שומרים עבור משמרת {shift['name']}")
+            while assigned_guards < day_count:
+                # print(f"שגיאה: אין מספיק שומרים עבור משמרת {shift['name']}")
                 day_shifts.append((shift["name"], "חסר שומר"))
                 assigned_guards += 1
     else:
@@ -189,17 +197,19 @@ for i, shift in enumerate(shifts):
                         last_shift[guard] = 0
                         night_shifts.append((shift["name"], guard))
                         assigned_guards += 1
-                        if assigned_guards == night_count:
-                            break
+                        # Remove guard from not_assigned_guards
+                        not_assigned_guards.remove(guard)
+                        break
+        # Increment last shift for guards not assigned to the current shift
+        for guard in not_assigned_guards:
+            last_shift[guard] += 1
         # If not enough guards are assigned, print error and add placeholder
-        if assigned_guards < night_count:
-            print(f"שגיאה: אין מספיק שומרים עבור משמרת {shift['name']}")
+        while assigned_guards < night_count:
+            # print(f"שגיאה: אין מספיק שומרים עבור משמרת {shift['name']}")
             night_shifts.append((shift["name"], "חסר שומר"))
             assigned_guards += 1
-    # After each shift, increment last_shift[guard] for each guard not assigned to the shift
-    for guard in all_guards:
-        if not any(guard in shift for shift in day_shifts + night_shifts):
-            last_shift[guard] += 1
+
+            
 # Combine day_shifts and night_shifts into one list
 shifts = day_shifts + night_shifts
 
