@@ -135,7 +135,7 @@ print(return_guards, "חוזרים: ")
 for guard in selected: returning_guards.append(guard[0])
 
 # Selector for returning guards shift time
-title=("האם חוזרים שומרים 14-18?")
+title=("?14-18 מי שחוזר שומר")
 options=["כן","לא"]
 selected=pick(options,title)
 print("14-18 ","חוזרים ",selected[0], " שומרים")
@@ -209,7 +209,6 @@ for i, shift in enumerate(shifts):
             night_shifts.append((shift["name"], "חסר שומר"))
             assigned_guards += 1
 
-            
 # Combine day_shifts and night_shifts into one list
 shifts = day_shifts + night_shifts
 
@@ -245,10 +244,10 @@ for time, guards in shifts_dict.items():
 #     title=("בחר שני שומרים להחליף ראש בראש")
 #     options=available_guards
 #     selected=pick(options,title,multiselect=True, min_selection_count=2)
-#     if len(selected) != 2:
+#     swap_guards=[x[0] for x in selected]
+#     if len(swap_guards) != 2:
 #         print("שגיאה: יש לבחור שני שומרים להחליף ראש בראש.")
 #     else:
-#         swap_guards=[x[0] for x in selected]
 #         a = swap_guards[0]
 #         b= swap_guards[1]
 #         temp_var=shifts_dict[shifts[b][0]]
