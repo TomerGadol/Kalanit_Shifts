@@ -26,16 +26,19 @@ except FileNotFoundError:
             reader = csv.reader(csvfile)
             for row in reader:
                 all_guards.append(row[0])  # assuming guard name is in the first column
+# Sort guards alphabetically
+all_guards.sort()
+
 #TODO update all selectors to run from function
 # Define single selector function
-    def single_selector(title, options):
+def single_selector(title, options):
         title=title
         options=options
         selected=pick(options, title)
         chosen=selected[0]
         return(chosen)
 # Define multi selector function
-    def multi_selector(title, options, min_selection_count):
+def multi_selector(title, options, min_selection_count):
         title=title
         options=options
         selected=pick(options, title, multiselect=True, min_selection_count=min_selection_count)
@@ -266,7 +269,9 @@ while swapping:
     if swap=="כן":
         # Selector for swapping shifts
         title=("בחר שני שומרים להחליף ראש בראש")
-        options=available_guards
+        swap_list=available_guards.copy()
+        swap_list.sort()
+        options=swap_list
         selected=pick(options,title,multiselect=True, min_selection_count=2)
         swap_guards=[x[0] for x in selected]
         if len(swap_guards) != 2:
