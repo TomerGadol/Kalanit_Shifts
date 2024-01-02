@@ -2,6 +2,15 @@
 Kalanit_shifts.build/
 Kalanit_shifts.dist/
 Kalanit_shifts.onefile-build/
+Include/
+Python.code-workspace
+last_shift.pkl
+Scripts/
+output/
+pyvenv.cfg
+share/
+
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
