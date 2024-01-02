@@ -1,2 +1,1 @@
-"# Kalanit_Shifts" 
-This is a basic program made to schedule guard duty for Kalanit base
+Kalanit_Shifts is a basic python program made to schedule guard duty for the Kalanit base.
